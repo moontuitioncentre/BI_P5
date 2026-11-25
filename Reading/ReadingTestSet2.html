@@ -3001,10 +3001,10 @@ function normalizeMalay(value) {
         .replace(/\bwhat's\b/g, "what is")
         .replace(/\bwho's\b/g, "who is")
         .replace(/\bthere's\b/g, "there is")
-		.replace(/\bi've\b/g, "i have")
-.replace(/\byou've\b/g, "you have")
-.replace(/\bwe've\b/g, "we have")
-.replace(/\bthey've\b/g, "they have")
+        .replace(/\bi've\b/g, "i have")
+        .replace(/\byou've\b/g, "you have")
+        .replace(/\bwe've\b/g, "we have")
+        .replace(/\bthey've\b/g, "they have")
 
         // 统一标点和空格
         .replace(/[.,!?;:"“”‘’()[\]{}']/g, " ")
@@ -3034,6 +3034,24 @@ function normalizeMalay(value) {
     const targetTokenCount = answer.split(/\s+/).length;
 
     let similarity = 0;
+
+    // ===== 特殊语音识别容错 =====
+
+// I：Chrome 可能将单独的字母 I 识别不稳定
+if (
+    answer === "i" &&
+    (cleanText === "i" || cleanText === "eye")
+) {
+    similarity = 1;
+}
+
+// o'clock：允许不同的识别形式
+if (
+    answer === "oclock" &&
+    ["oclock", "o clock", "clock"].includes(cleanText)
+) {
+    similarity = 1;
+}
 
     // 忽略空格，例如：
     // dikitar 和 di kitar 可以视为相同
@@ -3088,6 +3106,15 @@ function normalizeMalay(value) {
             }
         }
     }
+
+    // ===== 特殊语音识别容错 =====
+// tick 经常被 Chrome 识别成 take
+if (
+    answer === "tick" &&
+    spokenTokens.some(token => token === "take")
+) {
+    similarity = 1;
+}
 
     // 更宽松的判断标准
     let threshold;
